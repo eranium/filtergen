@@ -27,7 +27,7 @@ try {
     $filterGen = new Filtergen(new IRRDClient());
 
     // Get prefixes based on input, validation is done here as well;
-    $query = $filterGen->getPrefixes($_GET['set'], explode(',', $_GET['sources']), (int)$_GET['type']);
+    $query = $filterGen->getPrefixes($_GET['set'], explode(',', $_GET['sources']), (int)$_GET['type'], isset($_GET['drop']));
 
     // Output prefix list in Arista format;
     echo $filterGen->formatToVendor($query['prefixes'], 'Arista');

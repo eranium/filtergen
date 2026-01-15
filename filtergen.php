@@ -23,7 +23,7 @@ try {
     $argv[2] = isset($argv[2]) ? explode(',', $argv[2]) : ['RIPE'];
 
     // Get prefixes based on args;
-    $query = $filterGen->getPrefixes($argv[1], $argv[2], $argv[3] ?? 4);
+    $query = $filterGen->getPrefixes($argv[1], $argv[2], $argv[3] ?? 4, isset($argv[3]));
     print_r($query);
 
     // Convert prefixes to an Arista styled prefix list;

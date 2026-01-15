@@ -18,6 +18,11 @@ class Filtergen
     private IRRDClient $client;
 
     /**
+     * @var string
+     */
+    private string $dropListFile = 'https://www.spamhaus.org/drop/drop.txt';
+
+    /**
      * @param  IRRDClient  $IRRDClient
      * @throws \Exception
      */
@@ -113,7 +118,7 @@ class Filtergen
      * @return array
      * @throws \Exception
      */
-    public function getPrefixes(string $asnOrSet, array $sources = ['RIPE'], int $ipType = 4): array
+    public function getPrefixes(string $asnOrSet, array $sources = ['RIPE'], int $ipType = 4, bool $dropList = false): array
     {
         $this->isSupportedSource($sources);
         $prefixCommand = $this->prefixCommand($asnOrSet, $ipType);
@@ -126,6 +131,15 @@ class Filtergen
             $prefixes = explode(' ', $command[$prefixCommand]);
             natsort($prefixes);
             $prefixes = array_values($prefixes);
+            if ($dropList) {
+                $dropPrefixes = [];
+                foreach (file($this->dropListFile) as $line) {
+                    if (preg_match('/^(\d{1,3}(?:\.\d{1,3}){3}\/\d{1,2})/', $line, $m)) {
+                        $dropPrefixes[] = $m[1];
+                    }
+                }
+                $prefixes = array_diff($prefixes, $dropPrefixes);
+            }
         }
         return [
             'prefixes' => $prefixes ?? false,
