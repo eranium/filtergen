@@ -156,11 +156,13 @@ class Filtergen
                 $oldDataSet = json_decode(file_get_contents(__DIR__.'/../../../snapshots/'.$asnOrSet.'.ipv'.$ipType), true);
                 $addedPrefixes = array_values(array_diff($prefixes, $oldDataSet['prefixes']));
                 $removedPrefixes = array_values(array_diff($oldDataSet['prefixes'], $prefixes));
-                $snapshotPrefixes([
-                    'asnOrSet' => $asnOrSet,
-                    'added' => $addedPrefixes,
-                    'removed' => $removedPrefixes
-                ]);
+                if (!empty($addedPrefixes) || !empty($removedPrefixes)) {
+                    $snapshotPrefixes([
+                        'asnOrSet' => $asnOrSet,
+                        'added' => $addedPrefixes,
+                        'removed' => $removedPrefixes
+                    ]);
+                }
             }
             file_put_contents(__DIR__.'/../../../snapshots/'.$asnOrSet.'.ipv'.$ipType, json_encode($dataSet, JSON_PRETTY_PRINT));
         }
