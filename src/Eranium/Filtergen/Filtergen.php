@@ -115,10 +115,12 @@ class Filtergen
      * @param  string  $asnOrSet
      * @param  array  $sources
      * @param  int  $ipType
+     * @param  bool  $dropList
+     * @param  bool|callable|string  $snapshotPrefixes
      * @return array
      * @throws \Exception
      */
-    public function getPrefixes(string $asnOrSet, array $sources = ['RIPE'], int $ipType = 4, bool $dropList = false): array
+    public function getPrefixes(string $asnOrSet, array $sources = ['RIPE'], int $ipType = 4, bool $dropList = false, bool|callable|string $snapshotPrefixes = false): array
     {
         $this->isSupportedSource($sources);
         $prefixCommand = $this->prefixCommand($asnOrSet, $ipType);
@@ -141,10 +143,27 @@ class Filtergen
                 $prefixes = array_diff($prefixes, $dropPrefixes);
             }
         }
-        return [
+        $dataSet = [
             'prefixes' => $prefixes ?? false,
             'sources' => $sources,
             'updated' => $lastUpdates
         ];
+        if ($snapshotPrefixes) {
+            if (!file_exists(__DIR__.'/../../../snapshots')) {
+                mkdir(__DIR__.'/../../../snapshots');
+            }
+            if (is_callable($snapshotPrefixes) && file_exists(__DIR__.'/../../../snapshots/'.$asnOrSet.'.ipv'.$ipType)) {
+                $oldDataSet = json_decode(file_get_contents(__DIR__.'/../../../snapshots/'.$asnOrSet.'.ipv'.$ipType), true);
+                $addedPrefixes = array_values(array_diff($prefixes, $oldDataSet['prefixes']));
+                $removedPrefixes = array_values(array_diff($oldDataSet['prefixes'], $prefixes));
+                $snapshotPrefixes([
+                    'asnOrSet' => $asnOrSet,
+                    'added' => $addedPrefixes,
+                    'removed' => $removedPrefixes
+                ]);
+            }
+            file_put_contents(__DIR__.'/../../../snapshots/'.$asnOrSet.'.ipv'.$ipType, json_encode($dataSet, JSON_PRETTY_PRINT));
+        }
+        return $dataSet;
     }
 }

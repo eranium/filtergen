@@ -26,8 +26,15 @@ try {
     // Create new Filtergen object;
     $filterGen = new Filtergen(new IRRDClient());
 
+    // Check if snapshots are enabled and do callback if required;
+    $filterCallback = isset($_GET['snapshot']);
+    if (file_exists(__DIR__.'/callback.php') && $filterCallback && $_GET['snapshot'] == true) {
+        require_once __DIR__.'/callback.php';
+        $filterCallback = 'filterCallback';
+    }
+
     // Get prefixes based on input, validation is done here as well;
-    $query = $filterGen->getPrefixes($_GET['set'], explode(',', $_GET['sources']), (int)$_GET['type'], isset($_GET['drop']));
+    $query = $filterGen->getPrefixes($_GET['set'], explode(',', $_GET['sources']), (int)$_GET['type'], isset($_GET['drop']), $filterCallback);
 
     // Output prefix list in Arista format;
     echo $filterGen->formatToVendor($query['prefixes'], 'Arista');

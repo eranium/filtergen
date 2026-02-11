@@ -63,6 +63,9 @@ seq 3 permit 1.2.5.0/24
 seq 4 permit 1.2.6.0/24
 ```
 
+#### Snapshots
+Filtergen supports storing snapshots of prefixes locally. Using these snapshots you are able to do callbacks on changes (e.g. added or removed prefixes). Rename `callback.dist.php` to `callback.php` to enable the callback feature. This callable function can be adjusted to your liking. Once changes are detected (when the API is queried) it will do a callback. Snapshots are stored in the `snapshots` folder in JSON format.
+
 ## Notes
 Supported sources: `NTTCOM,INTERNAL,LACNIC,RADB,RIPE,RIPE-NONAUTH,ALTDB,BELL,LEVEL3,APNIC,JPIRR,ARIN,BBOI,TC,AFRINIC,IDNIC,RPKI,REGISTROBR,CANARIE`
 
