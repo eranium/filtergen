@@ -13,6 +13,7 @@ use Eranium\Filtergen\Filtergen;
 use Eranium\Filtergen\IRRDClient;
 
 require_once __DIR__.'/src/Eranium/Filtergen/Filtergen.php';
+require_once __DIR__.'/src/Eranium/Filtergen/PrefixAggregator.php';
 require_once __DIR__.'/src/Eranium/Filtergen/IRRDClient.php';
 
 try {
@@ -21,14 +22,15 @@ try {
 
     // Process args from CLI;
     $argv[2] = isset($argv[2]) ? explode(',', $argv[2]) : ['RIPE'];
+    $ipType  = isset($argv[3]) ? (int) $argv[3] : 4;
 
     // Get prefixes based on args;
-    $query = $filterGen->getPrefixes($argv[1], $argv[2], $argv[3] ?? 4, isset($argv[3]));
-    print_r($query);
+    $query = $filterGen->getPrefixes($argv[1], $argv[2], $ipType, false, true, true);
+    //print_r($query);
 
     // Convert prefixes to an Arista styled prefix list;
-    $vendored = $filterGen->formatToVendor($query['prefixes'], 'Arista');
-    var_dump($vendored);
+    echo $vendored = $filterGen->formatToVendor($query['prefixes'], 'Arista', $ipType);
+
 } catch (\Exception $e) {
     die($e->getMessage());
 }

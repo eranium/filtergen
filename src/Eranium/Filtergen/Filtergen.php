@@ -95,13 +95,14 @@ class Filtergen
     /**
      * @param  array|false  $prefixes
      * @param  string  $vendor
+     * @param  int  $ipType
      * @return string
      * @throws \Exception
      */
-    public function formatToVendor(array|false $prefixes, string $vendor): string
+    public function formatToVendor(array|false $prefixes, string $vendor, int $ipType = 4): string
     {
         if (empty($prefixes)) {
-            return 'seq 1 deny 0.0.0.0/0 ';
+            return $ipType === 6 ? 'seq 1 deny ::/0 ' : 'seq 1 deny 0.0.0.0/0 ';
         }
         if (!file_exists(__DIR__.'/Formatters/'.ucfirst(strtolower($vendor)).'Formatter.php')) {
             throw new \Exception('Could not load vendor.');
@@ -117,10 +118,11 @@ class Filtergen
      * @param  int  $ipType
      * @param  bool  $dropList
      * @param  bool|callable|string  $snapshotPrefixes
+     * @param  bool  $aggregate
      * @return array
      * @throws \Exception
      */
-    public function getPrefixes(string $asnOrSet, array $sources = ['RIPE'], int $ipType = 4, bool $dropList = false, bool|callable|string $snapshotPrefixes = false): array
+    public function getPrefixes(string $asnOrSet, array $sources = ['RIPE'], int $ipType = 4, bool $dropList = false, bool|callable|string $snapshotPrefixes = false, bool $aggregate = false): array
     {
         $this->isSupportedSource($sources);
         $prefixCommand = $this->prefixCommand($asnOrSet, $ipType);
@@ -133,7 +135,10 @@ class Filtergen
             $prefixes = explode(' ', $command[$prefixCommand]);
             natsort($prefixes);
             $prefixes = array_values($prefixes);
-            if ($dropList) {
+            if ($aggregate) {
+                $prefixes = PrefixAggregator::aggregate($prefixes);
+            }
+            if ($dropList && $ipType === 4) {
                 $dropPrefixes = [];
                 foreach (file($this->dropListFile) as $line) {
                     if (preg_match('/^(\d{1,3}(?:\.\d{1,3}){3}\/\d{1,2})/', $line, $m)) {
